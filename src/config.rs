@@ -1,5 +1,4 @@
 use std::fs;
-use std::io::ErrorKind;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Config {
@@ -28,32 +27,21 @@ impl Config {
             max_chunk_liveness: 0,
         }
     }
-    pub fn new(
-        num_chunks: u32,
-        buffer_size: u32,
-        buffer_liveness: u32,
-        avg_chunk_size: u32,
-        min_chunk_size: u32,
-        max_chunk_size: u32,
-        avg_chunk_liveness: u32,
-        min_chunk_liveness: u32,
-        max_chunk_liveness: u32,
-    ) -> Self {
-        Self {
-            num_chunks: num_chunks,
-            buffer_size: buffer_size,
-            buffer_liveness: buffer_liveness,
-            avg_chunk_size: avg_chunk_size,
-            min_chunk_size: min_chunk_size,
-            max_chunk_size: max_chunk_size,
-            avg_chunk_liveness: avg_chunk_liveness,
-            min_chunk_liveness: min_chunk_liveness,
-            max_chunk_liveness: max_chunk_liveness,
-        }
+    pub fn check_options(&self) {
+        assert!(self.max_chunk_size <= self.buffer_size);
+        assert!(
+            self.min_chunk_size <= self.avg_chunk_size
+                && self.avg_chunk_size <= self.max_chunk_size
+        );
+        assert!(self.max_chunk_liveness <= self.buffer_liveness);
+        assert!(
+            self.min_chunk_liveness <= self.avg_chunk_liveness
+                && self.avg_chunk_liveness <= self.max_chunk_liveness
+        );
     }
 }
 
-pub fn readConfig(config_full_path: String) -> Config {
+pub fn read_config(config_full_path: String) -> Config {
     let mut cfg = Config::empty();
     let contents = fs::read_to_string(config_full_path).expect("no such config file");
     let lines = contents.split('\n');
@@ -67,10 +55,10 @@ pub fn readConfig(config_full_path: String) -> Config {
             continue;
         }
         let token = substrs[0].trim();
-        let mut value: u32 = 0;
+        let value: u32;
         match substrs[1].trim().parse::<u32>() {
             Ok(n) => value = n,
-            Err(e) => {
+            Err(_) => {
                 warn_message(l);
                 continue;
             }
@@ -91,5 +79,6 @@ pub fn readConfig(config_full_path: String) -> Config {
             }
         }
     }
+    cfg.check_options();
     cfg
 }

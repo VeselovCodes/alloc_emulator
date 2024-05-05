@@ -3,10 +3,10 @@ use std::env;
 use alloc_driver::allocate;
 use buffer::BufferState;
 use chunk::Chunk;
-use chunk_generator::generateChunks;
-use config::readConfig;
+use chunk_generator::generate_chunks;
+use config::read_config;
 use config::Config;
-use correctness_checker::checkBufferStates;
+use correctness_checker::check_buffer_states;
 
 mod alloc_driver;
 mod buffer;
@@ -35,9 +35,9 @@ fn main() {
     };
 
     println!("Read config from file: {config_full_path}");
-    let config: Config = readConfig(config_full_path);
+    let config: Config = read_config(config_full_path);
     let config_ref: &Config = &config;
-    let chunks: Vec<Chunk> = generateChunks(config_ref);
+    let chunks: Vec<Chunk> = generate_chunks(config_ref);
     let buffer_states: Vec<BufferState> = allocate(chunks, config_ref);
-    checkBufferStates(buffer_states, config_ref);
+    check_buffer_states(buffer_states, config_ref);
 }
